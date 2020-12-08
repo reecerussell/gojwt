@@ -1,11 +1,14 @@
-package rsa
+package rsa_test
 
 import (
 	"crypto"
 	"encoding/base64"
 	"os"
 	"testing"
+	"time"
 
+	"github.com/reecerussell/gojwt"
+	"github.com/reecerussell/gojwt/rsa"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -39,15 +42,15 @@ H9MfLqzcWxf/sUxcK+KZ6PYE42q/6HkbIrSehbpJoFMnQND+uZAv3w==
 `
 
 func TestNew(t *testing.T) {
-	rsa, err := New([]byte(testPrivateKey), crypto.SHA256)
+	alg, err := rsa.New([]byte(testPrivateKey), crypto.SHA256)
 	assert.Nil(t, err)
-	assert.NotNil(t, rsa.k)
+	assert.NotNil(t, alg)
 }
 
 func TestNew_GivenInvalidPem_ReturnsError(t *testing.T) {
 	const defoNotPem string = "7238yshiweidlkdsfkbds"
 
-	rsa, err := New([]byte(defoNotPem), crypto.SHA256)
+	rsa, err := rsa.New([]byte(defoNotPem), crypto.SHA256)
 	assert.Nil(t, rsa)
 	assert.Equal(t, "invalid key format", err.Error())
 }
@@ -71,7 +74,7 @@ H9MfLqzcWxf/sUxcK+KZ6PYE42q/6HkbIrSehbpJoFMnQND+uZAv3w==
 -----END RSA PRIVATE KEY-----
 `)
 
-	rsa, err := New(invalidKey, crypto.SHA256)
+	rsa, err := rsa.New(invalidKey, crypto.SHA256)
 	assert.Nil(t, rsa)
 	assert.NotNil(t, err)
 }
@@ -89,24 +92,24 @@ func TestNewFromFile(t *testing.T) {
 		os.Remove("my_super_secret_test_key.pem")
 	})
 
-	rsa, err := NewFromFile("my_super_secret_test_key.pem", crypto.SHA256)
+	alg, err := rsa.NewFromFile("my_super_secret_test_key.pem", crypto.SHA256)
 	assert.Nil(t, err)
-	assert.NotNil(t, rsa)
+	assert.NotNil(t, alg)
 }
 
 func TestNewFromFile_GivenNonExistantFilename_ReturnsError(t *testing.T) {
-	rsa, err := NewFromFile("my_super_secret_test_key_2.pem", crypto.SHA256)
-	assert.Nil(t, rsa)
+	alg, err := rsa.NewFromFile("my_super_secret_test_key_2.pem", crypto.SHA256)
+	assert.Nil(t, alg)
 	assert.True(t, os.IsNotExist(err))
 }
 
 func TestSign(t *testing.T) {
-	rsa, err := New([]byte(testPrivateKey), crypto.SHA256)
+	alg, err := rsa.New([]byte(testPrivateKey), crypto.SHA256)
 	if err != nil {
 		panic(err)
 	}
 
-	bytes := rsa.Sign([]byte("Hello World"))
+	bytes := alg.Sign([]byte("Hello World"))
 	assert.NotNil(t, bytes)
 }
 
@@ -114,46 +117,62 @@ func TestVerify(t *testing.T) {
 	const base64Signature string = "xncU8W6S3AfWvr9gmAYOK0yrL3NDVmubUMMZkzXBtoBbxe/RTrcQJX1Zq9e5mWEDB/lJt0oMLyCvbNKMx83ev2HATcKa40CTTzrsVatFaP4EUnKnuO4ugNRJQozIQPDN6qUcVbWwW9SSfvHoroeEllr30yOUDfmjz1+smUJfwancGPZBDgvkz5IJVfkKo5g8TDpS6T9vPwjN8ZSk+c6fmlXehtqwxRpec/V8bVXXKn8HeCI/1fgi3vG5tAswRaOXYwCtXPgcrNLJXxUTfLXO58iEz2sh+qRWBIC6nDZSBdkPKY3r/RRvplReoFY8IElWsd2dmwEqYMxhw1mEho/8iA"
 	signature, _ := base64.RawStdEncoding.DecodeString(base64Signature)
 
-	rsa, err := New([]byte(testPrivateKey), crypto.SHA256)
+	alg, err := rsa.New([]byte(testPrivateKey), crypto.SHA256)
 	if err != nil {
 		panic(err)
 	}
 
-	valid := rsa.Verify([]byte("Hello World"), signature)
+	valid := alg.Verify([]byte("Hello World"), signature)
 	assert.True(t, valid)
 }
 
 func TestVerify_GivenInvalidSignature_ReturnsFalse(t *testing.T) {
-	rsa, err := New([]byte(testPrivateKey), crypto.SHA256)
+	alg, err := rsa.New([]byte(testPrivateKey), crypto.SHA256)
 	if err != nil {
 		panic(err)
 	}
 
 	signature := []byte("my invalid signature")
-	valid := rsa.Verify([]byte("Hello World"), signature)
+	valid := alg.Verify([]byte("Hello World"), signature)
 	assert.False(t, valid)
 }
 
-func TestName_WithSHA256_ReturnsRS256(t *testing.T) {
-	alg := &RSA{h: crypto.SHA256}
+func TestName(t *testing.T) {
+	alg, err := rsa.New([]byte(testPrivateKey), crypto.SHA256)
+	if err != nil {
+		panic(err)
+	}
 
 	assert.Equal(t, "RS256", alg.Name())
 }
 
-func TestName_WithSHA512_ReturnsRS512(t *testing.T) {
-	alg := &RSA{h: crypto.SHA512}
+func TestSize(t *testing.T) {
+	alg, err := rsa.New([]byte(testPrivateKey), crypto.SHA256)
+	if err != nil {
+		panic(err)
+	}
 
-	assert.Equal(t, "RS512", alg.Name())
+	assert.Equal(t, 256, alg.Size())
 }
 
-func TestSize_WithSHA256_ReturnsRS256(t *testing.T) {
-	alg := &RSA{h: crypto.SHA256}
+func TestE2E(t *testing.T) {
+	alg, err := rsa.New([]byte(testPrivateKey), crypto.SHA256)
+	assert.Nil(t, err)
 
-	assert.Equal(t, 256/8, alg.Size())
-}
+	// Creating a new builder object, then adding some claims.
+	builder := gojwt.New(alg).
+		AddClaim("name", "John Doe").
+		SetExpiry(time.Now().Add(1 * time.Hour))
 
-func TestSize_WithSHA512_ReturnsRS512(t *testing.T) {
-	alg := &RSA{h: crypto.SHA512}
+	// Finally, building the token.
+	token, err := builder.Build()
+	if err != nil {
+		panic(err)
+	}
 
-	assert.Equal(t, 512/8, alg.Size())
+	jwt, err := gojwt.Token(token)
+	assert.Nil(t, err)
+
+	err = jwt.Verify(alg)
+	assert.Nil(t, err)
 }
