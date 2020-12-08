@@ -14,7 +14,7 @@ type Algorithm interface {
 	// Sign is used to generate a signature of a token.
 	Sign(data []byte) []byte
 
-	// Verify is used to validate the signature agains the rest
+	// Verify is used to validate the signature against the rest
 	// of a token's data.
 	Verify(data, signature []byte) bool
 

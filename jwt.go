@@ -16,6 +16,8 @@ const (
 	IssuedAtClaim  = "iat"
 )
 
+// JWT represents a JSON-Web-Token, which can be used to both
+// read a token's claims/payload, and verify a token.
 type JWT struct {
 	Claims
 	h   *Header
