@@ -53,7 +53,7 @@ func New(data []byte, h crypto.Hash) (*RSA, error) {
 // Name returns an algorithm name for use in a JWT header,
 // i.e. RS256
 func (alg *RSA) Name() string {
-	return fmt.Sprintf("RS%d", alg.h.Size()*8)
+	return fmt.Sprintf("RS%d", alg.k.Size())
 }
 
 // Sign signs the given data using the RSA PKCS1v15 private key,
@@ -82,5 +82,5 @@ func (alg *RSA) Verify(data, signature []byte) bool {
 
 // Size returns the byte size of the configured hash.
 func (alg *RSA) Size() int {
-	return alg.h.Size()
+	return alg.k.Size()
 }
