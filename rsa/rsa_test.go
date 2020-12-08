@@ -145,3 +145,15 @@ func TestName_WithSHA512_ReturnsRS512(t *testing.T) {
 
 	assert.Equal(t, "RS512", alg.Name())
 }
+
+func TestSize_WithSHA256_ReturnsRS256(t *testing.T) {
+	alg := &RSA{h: crypto.SHA256}
+
+	assert.Equal(t, 256/8, alg.Size())
+}
+
+func TestSize_WithSHA512_ReturnsRS512(t *testing.T) {
+	alg := &RSA{h: crypto.SHA512}
+
+	assert.Equal(t, 512/8, alg.Size())
+}
