@@ -79,3 +79,8 @@ func (alg *RSA) Verify(data, signature []byte) bool {
 
 	return true
 }
+
+// Size returns the byte size of the configured hash.
+func (alg *RSA) Size() int {
+	return alg.h.Size()
+}
