@@ -71,7 +71,14 @@ func New(data []byte, h crypto.Hash) (*RSA, error) {
 // Name returns an algorithm name for use in a JWT header,
 // i.e. RS256
 func (alg *RSA) Name() string {
-	return fmt.Sprintf("RS%d", alg.k.Size())
+	var size int
+	if alg.k != nil {
+		size = alg.k.Size()
+	} else {
+		size = alg.pub.Size()
+	}
+
+	return fmt.Sprintf("RS%d", size)
 }
 
 // Sign signs the given data using the RSA PKCS1v15 private key,

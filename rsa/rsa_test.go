@@ -183,8 +183,17 @@ func TestVerify_GivenInvalidSignature_ReturnsFalse(t *testing.T) {
 	assert.False(t, valid)
 }
 
-func TestName(t *testing.T) {
+func TestName_WithPrivateKey_ReturnsCorrectName(t *testing.T) {
 	alg, err := rsa.New([]byte(testPrivateKey), crypto.SHA256)
+	if err != nil {
+		panic(err)
+	}
+
+	assert.Equal(t, "RS256", alg.Name())
+}
+
+func TestName_WithPublicKey_ReturnsCorrectName(t *testing.T) {
+	alg, err := rsa.New([]byte(testPublicKey), crypto.SHA256)
 	if err != nil {
 		panic(err)
 	}
