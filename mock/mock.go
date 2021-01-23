@@ -1,3 +1,3 @@
-//go:generate mockgen -package=rsa -source=../algorithm.go -destination=algorithm.go
+//go:generate mockgen -package=mock -source=../algorithm.go -destination=algorithm.go
 
 package mock
