@@ -14,8 +14,9 @@ import (
 // RSA is an implementation of the jwt.Algorithm interface,
 // for RSA PKCS1v15.
 type RSA struct {
-	h crypto.Hash
-	k *rsapkg.PrivateKey
+	h   crypto.Hash
+	k   *rsapkg.PrivateKey
+	pub *rsapkg.PublicKey
 }
 
 // NewFromFile reads the file with the given name, then returns
@@ -39,14 +40,31 @@ func New(data []byte, h crypto.Hash) (*RSA, error) {
 		return nil, errors.New("invalid key format")
 	}
 
-	key, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	var (
+		key *rsapkg.PrivateKey
+		pub *rsapkg.PublicKey
+		err error
+	)
+
+	if block.Type == "PUBLIC KEY" {
+		pk, err := x509.ParsePKIXPublicKey(block.Bytes)
+		if err == nil {
+			pub = pk.(*rsapkg.PublicKey)
+		}
+	} else {
+		key, err = x509.ParsePKCS1PrivateKey(block.Bytes)
+		if err == nil {
+			pub = &(*key).PublicKey
+		}
+	}
 	if err != nil {
 		return nil, err
 	}
 
 	return &RSA{
-		h: h,
-		k: key,
+		h:   h,
+		k:   key,
+		pub: pub,
 	}, nil
 }
 
@@ -59,6 +77,10 @@ func (alg *RSA) Name() string {
 // Sign signs the given data using the RSA PKCS1v15 private key,
 // with the configured hash.
 func (alg *RSA) Sign(data []byte) []byte {
+	if alg.k == nil {
+		panic("alg must contain a private key to sign token")
+	}
+
 	digest := alg.h.New()
 	digest.Write(data)
 
@@ -72,7 +94,7 @@ func (alg *RSA) Verify(data, signature []byte) bool {
 	digest := alg.h.New()
 	digest.Write(data)
 
-	err := rsapkg.VerifyPKCS1v15(&(*alg.k).PublicKey, alg.h, digest.Sum(nil), signature)
+	err := rsapkg.VerifyPKCS1v15(alg.pub, alg.h, digest.Sum(nil), signature)
 	if err != nil {
 		return false
 	}

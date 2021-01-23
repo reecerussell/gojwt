@@ -16,7 +16,7 @@ $ go get -u github.com/reecerussell/gojwt
 
 ## Supported Algorithms
 
--   [RSA (PKCS1v15)](/rsa)
+-   [RSA](/rsa)
 
 ## Usage
 

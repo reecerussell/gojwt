@@ -2,6 +2,11 @@
 
 The RSA package provides support for signing and verifing tokens using an asymmetric PKCS1v15 key.
 
+## Supported Keys
+
+-   PKCS1 Private Keys
+-   PKIX Public Keys
+
 ## Usage
 
 There are two ways of using the RSA algorithm, either with PEM-encoded RSA private key data, or with it as a file.
