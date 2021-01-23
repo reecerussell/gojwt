@@ -7,9 +7,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/reecerussell/gojwt"
 	"github.com/reecerussell/gojwt/rsa"
-	"github.com/stretchr/testify/assert"
 )
 
 const testPrivateKey = `-----BEGIN RSA PRIVATE KEY-----
@@ -41,8 +42,25 @@ H9MfLqzcWxf/sUxcK+KZ6PYE42q/6HkbIrSehbpJoFMnQND+uZAv3w==
 -----END RSA PRIVATE KEY-----
 `
 
+const testPublicKey = `-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAykIPjn9PKaAfE22L7PJM
+3EkwaZbDwzXhdu7oHJ8vg03Pwf/byJKAZT5qRD4p/z836gaZMZpA/pOoOjTQMLEG
+wKGFG9SBsP99ocMUSIrdM1s+D+Ewrk7sDRCGEJWrr8rT+iZTwuUexTq6HXJHVM8X
+aOFnN37OB9DhuG7jFVUPQyDlVNSX8VZxajD8GdhuPpzpQfFIGFktfOyHPn5QYUsu
+CWbLa0k7Xx7e1e/J7PUDrLh8cI3lDt9Ti/pBG+O2oVl7ma6mmKWCCfpbNKeSRdPe
+MaA8goKwFAfm832luVD1HBIh3imWvay+KigYOB6p22BhXnhJW6Rxvo7eYnX8WBhq
+3wIDAQAB
+-----END PUBLIC KEY-----
+`
+
 func TestNew(t *testing.T) {
 	alg, err := rsa.New([]byte(testPrivateKey), crypto.SHA256)
+	assert.Nil(t, err)
+	assert.NotNil(t, alg)
+}
+
+func TestNew_GivenPublicKey_ReturnsNoError(t *testing.T) {
+	alg, err := rsa.New([]byte(testPublicKey), crypto.SHA256)
 	assert.Nil(t, err)
 	assert.NotNil(t, alg)
 }
@@ -113,11 +131,39 @@ func TestSign(t *testing.T) {
 	assert.NotNil(t, bytes)
 }
 
-func TestVerify(t *testing.T) {
+func TestSign_WithNoPrivateKey_Panics(t *testing.T) {
+	alg, err := rsa.New([]byte(testPublicKey), crypto.SHA256)
+	if err != nil {
+		panic(err)
+	}
+
+	defer func() {
+		r := recover()
+		assert.NotNil(t, r)
+	}()
+
+	bytes := alg.Sign([]byte("Hello World"))
+	assert.Nil(t, bytes)
+}
+
+func TestVerify_GivenPrivateKey_ReturnsNoError(t *testing.T) {
 	const base64Signature string = "xncU8W6S3AfWvr9gmAYOK0yrL3NDVmubUMMZkzXBtoBbxe/RTrcQJX1Zq9e5mWEDB/lJt0oMLyCvbNKMx83ev2HATcKa40CTTzrsVatFaP4EUnKnuO4ugNRJQozIQPDN6qUcVbWwW9SSfvHoroeEllr30yOUDfmjz1+smUJfwancGPZBDgvkz5IJVfkKo5g8TDpS6T9vPwjN8ZSk+c6fmlXehtqwxRpec/V8bVXXKn8HeCI/1fgi3vG5tAswRaOXYwCtXPgcrNLJXxUTfLXO58iEz2sh+qRWBIC6nDZSBdkPKY3r/RRvplReoFY8IElWsd2dmwEqYMxhw1mEho/8iA"
 	signature, _ := base64.RawStdEncoding.DecodeString(base64Signature)
 
 	alg, err := rsa.New([]byte(testPrivateKey), crypto.SHA256)
+	if err != nil {
+		panic(err)
+	}
+
+	valid := alg.Verify([]byte("Hello World"), signature)
+	assert.True(t, valid)
+}
+
+func TestVerify_GivenPublicKey_ReturnsNoError(t *testing.T) {
+	const base64Signature string = "xncU8W6S3AfWvr9gmAYOK0yrL3NDVmubUMMZkzXBtoBbxe/RTrcQJX1Zq9e5mWEDB/lJt0oMLyCvbNKMx83ev2HATcKa40CTTzrsVatFaP4EUnKnuO4ugNRJQozIQPDN6qUcVbWwW9SSfvHoroeEllr30yOUDfmjz1+smUJfwancGPZBDgvkz5IJVfkKo5g8TDpS6T9vPwjN8ZSk+c6fmlXehtqwxRpec/V8bVXXKn8HeCI/1fgi3vG5tAswRaOXYwCtXPgcrNLJXxUTfLXO58iEz2sh+qRWBIC6nDZSBdkPKY3r/RRvplReoFY8IElWsd2dmwEqYMxhw1mEho/8iA"
+	signature, _ := base64.RawStdEncoding.DecodeString(base64Signature)
+
+	alg, err := rsa.New([]byte(testPublicKey), crypto.SHA256)
 	if err != nil {
 		panic(err)
 	}
