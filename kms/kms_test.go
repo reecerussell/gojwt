@@ -4,9 +4,12 @@ import (
 	"encoding/base64"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/reecerussell/gojwt"
 )
 
 // A test key in AWS KMS
@@ -145,4 +148,32 @@ func TestSize_HavingUnsupportedAlg_ReturnsError(t *testing.T) {
 	size, err := s.Size()
 	assert.NotNil(t, err)
 	assert.Equal(t, 0, size)
+}
+
+func TestE2E(t *testing.T) {
+	sess := session.Must(session.NewSessionWithOptions(session.Options{
+		SharedConfigState: session.SharedConfigEnable,
+	}))
+
+	s, err := New(sess, testKeyId, RSA_PKCS1_S256)
+	assert.Nil(t, err)
+
+	// Creating a new builder object, then adding some claims.
+	builder, err := gojwt.New(s)
+	assert.NoError(t, err)
+
+	builder.AddClaim("name", "John Doe").
+		SetExpiry(time.Now().Add(1 * time.Hour))
+
+	// Finally, building the token.
+	token, err := builder.Build()
+	if err != nil {
+		panic(err)
+	}
+
+	jwt, err := gojwt.Token(token)
+	assert.Nil(t, err)
+
+	err = jwt.Verify(s)
+	assert.Nil(t, err)
 }
