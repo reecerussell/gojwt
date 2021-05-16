@@ -33,11 +33,12 @@ func (m *MockAlgorithm) EXPECT() *MockAlgorithmMockRecorder {
 }
 
 // Name mocks base method.
-func (m *MockAlgorithm) Name() string {
+func (m *MockAlgorithm) Name() (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Name")
 	ret0, _ := ret[0].(string)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Name indicates an expected call of Name.
@@ -47,11 +48,12 @@ func (mr *MockAlgorithmMockRecorder) Name() *gomock.Call {
 }
 
 // Sign mocks base method.
-func (m *MockAlgorithm) Sign(data []byte) []byte {
+func (m *MockAlgorithm) Sign(data []byte) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Sign", data)
 	ret0, _ := ret[0].([]byte)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Sign indicates an expected call of Sign.
@@ -61,11 +63,12 @@ func (mr *MockAlgorithmMockRecorder) Sign(data interface{}) *gomock.Call {
 }
 
 // Verify mocks base method.
-func (m *MockAlgorithm) Verify(data, signature []byte) bool {
+func (m *MockAlgorithm) Verify(data, signature []byte) (bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Verify", data, signature)
 	ret0, _ := ret[0].(bool)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Verify indicates an expected call of Verify.
@@ -75,11 +78,12 @@ func (mr *MockAlgorithmMockRecorder) Verify(data, signature interface{}) *gomock
 }
 
 // Size mocks base method.
-func (m *MockAlgorithm) Size() int {
+func (m *MockAlgorithm) Size() (int, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Size")
 	ret0, _ := ret[0].(int)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Size indicates an expected call of Size.

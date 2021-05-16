@@ -1,10 +1,15 @@
 package gojwt
 
 import (
+	"crypto/rand"
+	"errors"
 	"testing"
 	"time"
 
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/reecerussell/gojwt/mock"
 )
 
 const testToken string = "eyJ0eXAiOiJKV1QiLCJhbGciOiJ0ZXN0In0.eyJhZ2UiOjI4LCJleHAiOjE2MDczMzg1OTYsIm5hbWUiOiJKb2huIn0.D88aOvlyS4-4ljD8aX3YadibGzvDOQUgp8gyP75NHJE"
@@ -148,10 +153,24 @@ func TestClaimsGetTime_GivenNonNumberClaim_ReturnsFalse(t *testing.T) {
 }
 
 func TestClaimsGetExpiry(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockAlg := mock.NewMockAlgorithm(ctrl)
+	mockAlg.EXPECT().Name().Return("RS256", nil)
+	mockAlg.EXPECT().Size().Return(256, nil)
+	mockAlg.EXPECT().Sign(gomock.Any()).DoAndReturn(func(data []byte) ([]byte, error) {
+		sig := make([]byte, 256)
+		rand.Read(sig)
+		return sig, nil
+	})
+
 	now := time.Now().UTC()
 	expiry := now.Add(1 * time.Hour)
+	builder, err := New(mockAlg)
+	assert.NoError(t, err)
 
-	token, err := New(&testAlgorithm{}).
+	token, err := builder.
 		SetExpiry(expiry).
 		Build()
 	if err != nil {
@@ -168,8 +187,23 @@ func TestClaimsGetExpiry(t *testing.T) {
 }
 
 func TestClaimsGetNotBefore(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockAlg := mock.NewMockAlgorithm(ctrl)
+	mockAlg.EXPECT().Name().Return("RS256", nil)
+	mockAlg.EXPECT().Size().Return(256, nil)
+	mockAlg.EXPECT().Sign(gomock.Any()).DoAndReturn(func(data []byte) ([]byte, error) {
+		sig := make([]byte, 256)
+		rand.Read(sig)
+		return sig, nil
+	})
+
 	now := time.Now().UTC()
-	token, err := New(&testAlgorithm{}).
+	builder, err := New(mockAlg)
+	assert.NoError(t, err)
+
+	token, err := builder.
 		SetNotBefore(now).
 		Build()
 	if err != nil {
@@ -186,8 +220,23 @@ func TestClaimsGetNotBefore(t *testing.T) {
 }
 
 func TestClaimsGetIssuedAt(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockAlg := mock.NewMockAlgorithm(ctrl)
+	mockAlg.EXPECT().Name().Return("RS256", nil)
+	mockAlg.EXPECT().Size().Return(256, nil)
+	mockAlg.EXPECT().Sign(gomock.Any()).DoAndReturn(func(data []byte) ([]byte, error) {
+		sig := make([]byte, 256)
+		rand.Read(sig)
+		return sig, nil
+	})
+
 	now := time.Now().UTC()
-	token, err := New(&testAlgorithm{}).
+	builder, err := New(mockAlg)
+	assert.NoError(t, err)
+
+	token, err := builder.
 		SetIssuedAt(now).
 		Build()
 	if err != nil {
@@ -204,9 +253,24 @@ func TestClaimsGetIssuedAt(t *testing.T) {
 }
 
 func TestTokenVerify(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockAlg := mock.NewMockAlgorithm(ctrl)
+	mockAlg.EXPECT().Name().Return("RS256", nil).Times(2)
+	mockAlg.EXPECT().Size().Return(256, nil)
+	mockAlg.EXPECT().Sign(gomock.Any()).DoAndReturn(func(data []byte) ([]byte, error) {
+		sig := make([]byte, 256)
+		rand.Read(sig)
+		return sig, nil
+	})
+	mockAlg.EXPECT().Verify(gomock.Any(), gomock.Any()).Return(true, nil)
+
 	now := time.Now().UTC()
-	alg := &testAlgorithm{}
-	token, err := New(alg).
+	builder, err := New(mockAlg)
+	assert.NoError(t, err)
+
+	token, err := builder.
 		SetNotBefore(now).
 		SetExpiry(now.Add(1 * time.Hour)).
 		Build()
@@ -218,14 +282,29 @@ func TestTokenVerify(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, jwt)
 
-	err = jwt.Verify(alg)
+	err = jwt.Verify(mockAlg)
 	assert.Nil(t, err)
 }
 
 func TestTokenVerify_GivenExpiredToken_ReturnsError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockAlg := mock.NewMockAlgorithm(ctrl)
+	mockAlg.EXPECT().Name().Return("RS256", nil).Times(2)
+	mockAlg.EXPECT().Size().Return(256, nil)
+	mockAlg.EXPECT().Sign(gomock.Any()).DoAndReturn(func(data []byte) ([]byte, error) {
+		sig := make([]byte, 256)
+		rand.Read(sig)
+		return sig, nil
+	})
+	mockAlg.EXPECT().Verify(gomock.Any(), gomock.Any()).Return(true, nil)
+
 	now := time.Now().UTC()
-	alg := &testAlgorithm{}
-	token, err := New(alg).
+	builder, err := New(mockAlg)
+	assert.NoError(t, err)
+
+	token, err := builder.
 		SetExpiry(now.Add(-1 * time.Hour)).
 		Build()
 	if err != nil {
@@ -236,14 +315,29 @@ func TestTokenVerify_GivenExpiredToken_ReturnsError(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, jwt)
 
-	err = jwt.Verify(alg)
+	err = jwt.Verify(mockAlg)
 	assert.Equal(t, "token has expired", err.Error())
 }
 
 func TestTokenVerify_GivenNotYetValidToken_ReturnsError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockAlg := mock.NewMockAlgorithm(ctrl)
+	mockAlg.EXPECT().Name().Return("RS256", nil).Times(2)
+	mockAlg.EXPECT().Size().Return(256, nil)
+	mockAlg.EXPECT().Sign(gomock.Any()).DoAndReturn(func(data []byte) ([]byte, error) {
+		sig := make([]byte, 256)
+		rand.Read(sig)
+		return sig, nil
+	})
+	mockAlg.EXPECT().Verify(gomock.Any(), gomock.Any()).Return(true, nil)
+
 	now := time.Now().UTC()
-	alg := &testAlgorithm{}
-	token, err := New(alg).
+	builder, err := New(mockAlg)
+	assert.NoError(t, err)
+
+	token, err := builder.
 		SetNotBefore(now.Add(1 * time.Hour)).
 		Build()
 	if err != nil {
@@ -254,13 +348,30 @@ func TestTokenVerify_GivenNotYetValidToken_ReturnsError(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, jwt)
 
-	err = jwt.Verify(alg)
+	err = jwt.Verify(mockAlg)
 	assert.Equal(t, "token is not yet valid", err.Error())
 }
 
 func TestTokenVerify_GivenTokenWithMismatchAlgName_ReturnsError(t *testing.T) {
-	alg := &testAlgorithm{}
-	token, err := New(alg).Build()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockAlg1 := mock.NewMockAlgorithm(ctrl)
+	mockAlg1.EXPECT().Name().Return("RS256", nil)
+	mockAlg1.EXPECT().Size().Return(256, nil)
+	mockAlg1.EXPECT().Sign(gomock.Any()).DoAndReturn(func(data []byte) ([]byte, error) {
+		sig := make([]byte, 256)
+		rand.Read(sig)
+		return sig, nil
+	})
+
+	mockAlg2 := mock.NewMockAlgorithm(ctrl)
+	mockAlg2.EXPECT().Name().Return("RS512", nil)
+
+	builder, err := New(mockAlg1)
+	assert.NoError(t, err)
+
+	token, err := builder.Build()
 	if err != nil {
 		panic(err)
 	}
@@ -269,14 +380,28 @@ func TestTokenVerify_GivenTokenWithMismatchAlgName_ReturnsError(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, jwt)
 
-	alg.algName = "myAlgorithm"
-	err = jwt.Verify(alg)
+	err = jwt.Verify(mockAlg2)
 	assert.Equal(t, "algorithm mismatch", err.Error())
 }
 
 func TestTokenVerify_GivenInvalidSignature_ReturnsError(t *testing.T) {
-	alg := &testAlgorithm{}
-	token, err := New(alg).Build()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockAlg := mock.NewMockAlgorithm(ctrl)
+	mockAlg.EXPECT().Name().Return("RS256", nil).Times(2)
+	mockAlg.EXPECT().Size().Return(256, nil)
+	mockAlg.EXPECT().Sign(gomock.Any()).DoAndReturn(func(data []byte) ([]byte, error) {
+		sig := make([]byte, 256)
+		rand.Read(sig)
+		return sig, nil
+	})
+	mockAlg.EXPECT().Verify(gomock.Any(), gomock.Any()).Return(false, nil)
+
+	builder, err := New(mockAlg)
+	assert.NoError(t, err)
+
+	token, err := builder.Build()
 	if err != nil {
 		panic(err)
 	}
@@ -286,6 +411,55 @@ func TestTokenVerify_GivenInvalidSignature_ReturnsError(t *testing.T) {
 	assert.NotNil(t, jwt)
 
 	jwt.raw = jwt.raw[:len(jwt.raw)-2] // deform signature
-	err = jwt.Verify(alg)
+	err = jwt.Verify(mockAlg)
 	assert.Equal(t, "token is not valid", err.Error())
+}
+
+func TestTokenVerify_WhereSignatureVerificationFails_ReturnsError(t *testing.T) {
+	testErr := errors.New("test error")
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockAlg := mock.NewMockAlgorithm(ctrl)
+	mockAlg.EXPECT().Name().Return("RS256", nil).Times(2)
+	mockAlg.EXPECT().Size().Return(256, nil)
+	mockAlg.EXPECT().Sign(gomock.Any()).DoAndReturn(func(data []byte) ([]byte, error) {
+		sig := make([]byte, 256)
+		rand.Read(sig)
+		return sig, nil
+	})
+	mockAlg.EXPECT().Verify(gomock.Any(), gomock.Any()).Return(false, testErr)
+
+	builder, err := New(mockAlg)
+	assert.NoError(t, err)
+
+	token, err := builder.Build()
+	if err != nil {
+		panic(err)
+	}
+
+	jwt, err := Token(token)
+	assert.Nil(t, err)
+	assert.NotNil(t, jwt)
+
+	err = jwt.Verify(mockAlg)
+	assert.Equal(t, testErr, err)
+}
+
+func TestVerify_WhereAlgNameReturnsError_ReturnsError(t *testing.T) {
+	testErr := errors.New("test error")
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockAlg := mock.NewMockAlgorithm(ctrl)
+	mockAlg.EXPECT().Name().Return("", testErr)
+
+	jwt, err := Token(testToken)
+	assert.Nil(t, err)
+	assert.NotNil(t, jwt)
+
+	err = jwt.Verify(mockAlg)
+	assert.Equal(t, testErr, err)
 }

@@ -9,17 +9,20 @@ type Algorithm interface {
 	//
 	// For example: "RS256", which will look like this, in use:
 	// {"alg":"RS256"}
-	Name() string
+	Name() (string, error)
 
 	// Sign is used to generate a signature of a token.
-	Sign(data []byte) []byte
+	Sign(data []byte) ([]byte, error)
 
 	// Verify is used to validate the signature against the rest
 	// of a token's data.
-	Verify(data, signature []byte) bool
+	//
+	// An error is returned if the verification failed, however,
+	// an error will not be thrown just because the signature is invalid.
+	Verify(data, signature []byte) (bool, error)
 
 	// Sign returns the hash byte count of the algorithm.
 	//
 	// For example: SHA256 will return 256.
-	Size() int
+	Size() (int, error)
 }

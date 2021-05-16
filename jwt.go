@@ -74,7 +74,12 @@ func unmarshalFromBase64JSON(data string, v interface{}) error {
 // is invalid, not yet valid, expired, or if the alg Verify()
 // function returns an error.
 func (jwt *JWT) Verify(alg Algorithm) error {
-	if jwt.h.Alg != alg.Name() {
+	algName, err := alg.Name()
+	if err != nil {
+		return err
+	}
+
+	if jwt.h.Alg != algName {
 		return errors.New("algorithm mismatch")
 	}
 
@@ -84,7 +89,11 @@ func (jwt *JWT) Verify(alg Algorithm) error {
 	signature := make([]byte, base64.RawURLEncoding.DecodedLen(len(encSignature)))
 	n, _ := base64.RawURLEncoding.Decode(signature, encSignature)
 
-	valid := alg.Verify(token, signature[:n])
+	valid, err := alg.Verify(token, signature[:n])
+	if err != nil {
+		return err
+	}
+
 	if !valid {
 		return errors.New("token is not valid")
 	}
