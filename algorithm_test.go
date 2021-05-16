@@ -9,28 +9,28 @@ type testAlgorithm struct {
 	algName string
 }
 
-func (a *testAlgorithm) Name() string {
+func (a *testAlgorithm) Name() (string, error) {
 	if a.algName != "" {
-		return a.algName
+		return a.algName, nil
 	}
 
-	return "test"
+	return "test", nil
 }
 
-func (a *testAlgorithm) Sign(token []byte) []byte {
+func (a *testAlgorithm) Sign(token []byte) ([]byte, error) {
 	mac := hmac.New(sha256.New, []byte("test-key"))
 	mac.Write(token)
-	return mac.Sum(nil)
+	return mac.Sum(nil), nil
 }
 
-func (a *testAlgorithm) Verify(token, signature []byte) bool {
+func (a *testAlgorithm) Verify(token, signature []byte) (bool, error) {
 	mac := hmac.New(sha256.New, []byte("test-key"))
 	mac.Write(token)
 	expected := mac.Sum(nil)
 
-	return hmac.Equal(expected, signature)
+	return hmac.Equal(expected, signature), nil
 }
 
-func (*testAlgorithm) Size() int {
-	return sha256.New().Size()
+func (*testAlgorithm) Size() (int, error) {
+	return sha256.New().Size(), nil
 }

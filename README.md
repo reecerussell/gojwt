@@ -17,6 +17,7 @@ $ go get -u github.com/reecerussell/gojwt
 ## Supported Algorithms
 
 -   [RSA](/rsa)
+-   [AWS KMS](/kms)
 
 ## Usage
 
@@ -33,8 +34,12 @@ if err != nil {
 }
 
 // Creating a new builder object, then adding some claims.
-builder := gojwt.New(alg).
-    AddClaim("name", "John Doe").
+builder, err := gojwt.New(alg)
+if err != nil {
+    panic(err)
+}
+
+builder.AddClaim("name", "John Doe").
     SetExpiry(time.Now().Add(1 * time.Hour))
 
 // Finally, building the token.

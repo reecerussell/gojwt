@@ -15,15 +15,20 @@ type Builder struct {
 
 // New returns a new instance of Builder, configured
 // to use the algorithm alg.
-func New(alg Algorithm) *Builder {
+func New(alg Algorithm) (*Builder, error) {
+	name, err := alg.Name()
+	if err != nil {
+		return nil, err
+	}
+
 	return &Builder{
 		alg: alg,
 		header: &Header{
 			Type: "JWT",
-			Alg:  alg.Name(),
+			Alg:  name,
 		},
 		claims: make(Claims),
-	}
+	}, nil
 }
 
 // AddClaim adds a claim to the builder, which will be
@@ -88,13 +93,23 @@ func (b *Builder) Build() (string, error) {
 	claimBytes := marshalToBase64JSON(b.claims)
 
 	l := len(headerBytes) + 1 + len(claimBytes)
-	token := make([]byte, l, l+1+base64.RawURLEncoding.EncodedLen(b.alg.Size()))
+
+	sigLen, err := b.alg.Size()
+	if err != nil {
+		return "", err
+	}
+
+	token := make([]byte, l, l+1+base64.RawURLEncoding.EncodedLen(sigLen))
 	i := copy(token, headerBytes)
 	token[i] = byte('.')
 	i++
 	i += copy(token[i:], claimBytes)
 
-	sig := b.alg.Sign(token)
+	sig, err := b.alg.Sign(token)
+	if err != nil {
+		return "", err
+	}
+
 	token = token[:cap(token)]
 	token[i] = byte('.')
 	i++

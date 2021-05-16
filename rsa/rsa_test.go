@@ -127,7 +127,7 @@ func TestSign(t *testing.T) {
 		panic(err)
 	}
 
-	bytes := alg.Sign([]byte("Hello World"))
+	bytes, _ := alg.Sign([]byte("Hello World"))
 	assert.NotNil(t, bytes)
 }
 
@@ -142,7 +142,7 @@ func TestSign_WithNoPrivateKey_Panics(t *testing.T) {
 		assert.NotNil(t, r)
 	}()
 
-	bytes := alg.Sign([]byte("Hello World"))
+	bytes, _ := alg.Sign([]byte("Hello World"))
 	assert.Nil(t, bytes)
 }
 
@@ -155,7 +155,7 @@ func TestVerify_GivenPrivateKey_ReturnsNoError(t *testing.T) {
 		panic(err)
 	}
 
-	valid := alg.Verify([]byte("Hello World"), signature)
+	valid, _ := alg.Verify([]byte("Hello World"), signature)
 	assert.True(t, valid)
 }
 
@@ -168,7 +168,7 @@ func TestVerify_GivenPublicKey_ReturnsNoError(t *testing.T) {
 		panic(err)
 	}
 
-	valid := alg.Verify([]byte("Hello World"), signature)
+	valid, _ := alg.Verify([]byte("Hello World"), signature)
 	assert.True(t, valid)
 }
 
@@ -179,7 +179,7 @@ func TestVerify_GivenInvalidSignature_ReturnsFalse(t *testing.T) {
 	}
 
 	signature := []byte("my invalid signature")
-	valid := alg.Verify([]byte("Hello World"), signature)
+	valid, _ := alg.Verify([]byte("Hello World"), signature)
 	assert.False(t, valid)
 }
 
@@ -189,7 +189,9 @@ func TestName_WithPrivateKey_ReturnsCorrectName(t *testing.T) {
 		panic(err)
 	}
 
-	assert.Equal(t, "RS256", alg.Name())
+	name, err := alg.Name()
+	assert.NoError(t, err)
+	assert.Equal(t, "RS256", name)
 }
 
 func TestName_WithPublicKey_ReturnsCorrectName(t *testing.T) {
@@ -198,7 +200,9 @@ func TestName_WithPublicKey_ReturnsCorrectName(t *testing.T) {
 		panic(err)
 	}
 
-	assert.Equal(t, "RS256", alg.Name())
+	name, err := alg.Name()
+	assert.NoError(t, err)
+	assert.Equal(t, "RS256", name)
 }
 
 func TestSize(t *testing.T) {
@@ -207,7 +211,9 @@ func TestSize(t *testing.T) {
 		panic(err)
 	}
 
-	assert.Equal(t, 256, alg.Size())
+	size, err := alg.Size()
+	assert.NoError(t, err)
+	assert.Equal(t, 256, size)
 }
 
 func TestE2E(t *testing.T) {
@@ -215,8 +221,10 @@ func TestE2E(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Creating a new builder object, then adding some claims.
-	builder := gojwt.New(alg).
-		AddClaim("name", "John Doe").
+	builder, err := gojwt.New(alg)
+	assert.NoError(t, err)
+
+	builder.AddClaim("name", "John Doe").
 		SetExpiry(time.Now().Add(1 * time.Hour))
 
 	// Finally, building the token.
