@@ -153,3 +153,25 @@ func TestBuilderBuild_WhereSigningReturnsError_ReturnEmptyStringAndError(t *test
 	assert.Equal(t, testErr, err)
 	assert.Equal(t, "", token)
 }
+
+func TestBuilderBuild_WhereAlgSizeReturnsError_ReturnsError(t *testing.T) {
+	testErr := errors.New("test error")
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockAlg := mock.NewMockAlgorithm(ctrl)
+	mockAlg.EXPECT().Name().Return("RS256", nil)
+	mockAlg.EXPECT().Size().Return(0, testErr)
+
+	builder, err := New(mockAlg)
+	assert.NoError(t, err)
+
+	token, err := builder.
+		AddClaim("age", 28).
+		AddClaim("name", "John").
+		Build()
+
+	assert.Equal(t, testErr, err)
+	assert.Equal(t, "", token)
+}
