@@ -36,9 +36,6 @@ jobs:
         AWS_ACCESS_KEY_ID: ${{secrets.AWS_ACCESS_KEY}}
         AWS_SECRET_ACCESS_KEY: ${{secrets.AWS_SECRET_KEY}}
         KMS_KEY_ID: ${{secrets.KMS_KEY_ID}}
-        GOOGLE_APPLICATION_CREDENTIALS: service-account.json
-        GCP_DATA: ${{secrets.SERVICE_ACCOUNT}}
-        CI: "true"
 
     - name: Test GCP
       run: |
@@ -47,6 +44,10 @@ jobs:
         go test -race -coverprofile=coverage.gcp.txt -covermode=atomic
         rm service-account.json
         cd -
+      env:
+        GOOGLE_APPLICATION_CREDENTIALS: service-account.json
+        GCP_DATA: ${{secrets.SERVICE_ACCOUNT}}
+        CI: "true"
     
     - name: Install gocovmerge
       run: go install github.com/wadey/gocovmerge
