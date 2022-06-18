@@ -40,9 +40,10 @@ jobs:
     - name: Test GCP
       run: |
         cd gcp
-        echo "$GCP_DATA" > service-account.json
+        echo "$GCP_DATA" > $GOOGLE_APPLICATION_CREDENTIALS
+        cat $GOOGLE_APPLICATION_CREDENTIALS
         go test -race -coverprofile=coverage.gcp.txt -covermode=atomic
-        rm service-account.json
+        rm $GOOGLE_APPLICATION_CREDENTIALS
         cd -
       env:
         GOOGLE_APPLICATION_CREDENTIALS: service-account.json
