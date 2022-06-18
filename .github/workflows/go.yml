@@ -39,7 +39,7 @@ jobs:
     - name: Test GCP
       run: |
         echo "$GCP_DATA" > service-account.json
-        go test -v gcp/... -race -coverprofile=coverage.gcp.txt -covermode=atomic
+        go test gcp -race -coverprofile=coverage.gcp.txt -covermode=atomic
         rm service-account.json
     
     - name: Install gocovmerge
