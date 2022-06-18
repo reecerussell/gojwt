@@ -41,13 +41,12 @@ jobs:
       run: |
         cd gcp
         echo "$GCP_DATA" > $GOOGLE_APPLICATION_CREDENTIALS
-        cat $GOOGLE_APPLICATION_CREDENTIALS
         go test -race -coverprofile=coverage.gcp.txt -covermode=atomic
         rm $GOOGLE_APPLICATION_CREDENTIALS
         cd -
       env:
         GOOGLE_APPLICATION_CREDENTIALS: service-account.json
-        GCP_DATA: ${{secrets.SERVICE_ACCOUNT}}
+        GCP_DATA: ${{secrets.GCP_DATA}}
         CI: "true"
     
     - name: Install gocovmerge
