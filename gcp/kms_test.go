@@ -10,7 +10,9 @@ import (
 )
 
 func init() {
-	os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", "service-account.json")
+	if os.Getenv("CI") == "" {
+		os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", "service-account.json")
+	}
 }
 
 func TestGetDigestType_WhereKeyAlgIsSHA256_ReturnsDigest256(t *testing.T) {
