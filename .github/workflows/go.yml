@@ -50,7 +50,9 @@ jobs:
         CI: "true"
     
     - name: Install gocovmerge
-      run: go install github.com/wadey/gocovmerge
+      run: |
+        go get github.com/wadey/gocovmerge
+        go install github.com/wadey/gocovmerge
 
     - name: Combine Coverage
       run: gocovmerge coverage.gojwt.txt gcp/coverage.txt > coverage.txt
