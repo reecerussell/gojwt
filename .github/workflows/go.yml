@@ -27,7 +27,6 @@ jobs:
     - name: Test
       run: |
         go test -v ./... -race -coverprofile=coverage.gojwt.txt -covermode=atomic
-
         echo "$GCP_DATA" > service-account.json
         go test -v gcp/... -race -coverprofile=coverage.gcp.txt -covermode=atomic
         rm service-account.json
