@@ -41,7 +41,7 @@ jobs:
       run: |
         cd gcp
         echo "$GCP_DATA" > $GOOGLE_APPLICATION_CREDENTIALS
-        go test -race -coverprofile=coverage.gcp.txt -covermode=atomic
+        go test -race -coverprofile=coverage.txt -covermode=atomic
         rm $GOOGLE_APPLICATION_CREDENTIALS
         cd -
       env:
