@@ -24,14 +24,9 @@ jobs:
     - name: Get dependencies
       run: go mod download
         
-    - name: Test
+    - name: Test GoJWT
       run: |
         go test -v ./... -race -coverprofile=coverage.gojwt.txt -covermode=atomic
-        echo "$GCP_DATA" > service-account.json
-        go test -v gcp/... -race -coverprofile=coverage.gcp.txt -covermode=atomic
-        rm service-account.json
-        go install github.com/wadey/gocovmerge
-	      gocovmerge coverage.gojwt.txt coverage.gcp.txt > coverage.txt
       env:
         AWS_REGION: ${{secrets.AWS_REGION}}
         AWS_ACCESS_KEY_ID: ${{secrets.AWS_ACCESS_KEY}}
@@ -40,6 +35,17 @@ jobs:
         GOOGLE_APPLICATION_CREDENTIALS: service-account.json
         GCP_DATA: ${{secrets.SERVICE_ACCOUNT}}
         CI: "true"
+
+    - name: Test GCP
+      run: |
+        echo "$GCP_DATA" > service-account.json
+        go test -v gcp/... -race -coverprofile=coverage.gcp.txt -covermode=atomic
+        rm service-account.json
+    
+    - name: Combine Coverage
+      run: |
+        go install github.com/wadey/gocovmerge
+	      gocovmerge coverage.gojwt.txt coverage.gcp.txt > coverage.txt
       
     - name: Codecov
       uses: codecov/codecov-action@v1.0.15
