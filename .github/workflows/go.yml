@@ -44,7 +44,7 @@ jobs:
       run: |
         cd gcp
         echo "$GCP_DATA" > service-account.json
-        go test gcp -race -coverprofile=coverage.gcp.txt -covermode=atomic
+        go test -race -coverprofile=coverage.gcp.txt -covermode=atomic
         rm service-account.json
         cd -
     
