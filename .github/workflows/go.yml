@@ -22,7 +22,11 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Get dependencies
-      run: go mod download
+      run: |
+        go mod download
+        cd gcp
+        go mod download
+        cd -
         
     - name: Test GoJWT
       run: |
@@ -38,15 +42,17 @@ jobs:
 
     - name: Test GCP
       run: |
+        cd gcp
         echo "$GCP_DATA" > service-account.json
         go test gcp -race -coverprofile=coverage.gcp.txt -covermode=atomic
         rm service-account.json
+        cd -
     
     - name: Install gocovmerge
       run: go install github.com/wadey/gocovmerge
 
     - name: Combine Coverage
-      run: gocovmerge coverage.gojwt.txt coverage.gcp.txt > coverage.txt
+      run: gocovmerge coverage.gojwt.txt gcp/coverage.txt > coverage.txt
       
     - name: Codecov
       uses: codecov/codecov-action@v1.0.15
