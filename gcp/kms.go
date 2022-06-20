@@ -21,6 +21,8 @@ import (
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
+// ErrUnsupportedAlgorithm is an error used to indicate the GCP key's
+// algorithm is unsupported by gojwt.
 var ErrUnsupportedAlgorithm = errors.New("gojwt: unsupported algorithm")
 
 // KMS is an implementation of gojwt.Algorithm for Google Cloud
@@ -36,6 +38,9 @@ type KMS struct {
 	pubKeyData []byte
 }
 
+// New is used to instantiate a new version of KMS for the given key.
+// Note the the cryptoKeyVersion must be specified in the key name,
+// i.e. <key-name>/cryptoKeyVersions/1.
 func New(keyName string) (*KMS, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
 	defer cancel()
