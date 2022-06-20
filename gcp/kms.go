@@ -132,7 +132,8 @@ func (kms *KMS) Verify(data, signature []byte) (bool, error) {
 		proto.CryptoKeyVersion_RSA_SIGN_PSS_4096_SHA512:
 		return kms.verifyRSAPSS(data, signature)
 	case proto.CryptoKeyVersion_EC_SIGN_P256_SHA256,
-		proto.CryptoKeyVersion_EC_SIGN_SECP256K1_SHA256:
+		proto.CryptoKeyVersion_EC_SIGN_SECP256K1_SHA256,
+		proto.CryptoKeyVersion_EC_SIGN_P384_SHA384:
 		return kms.verifyEC(data, signature)
 	default:
 		return false, ErrUnsupportedAlgorithm
