@@ -232,7 +232,25 @@ func (kms *KMS) getPublicKeyData() ([]byte, error) {
 }
 
 func (kms *KMS) Size() (int, error) {
-	return 0, nil
+	alg := kms.key.GetVersionTemplate().Algorithm
+	switch alg {
+	case proto.CryptoKeyVersion_RSA_SIGN_PSS_2048_SHA256,
+		proto.CryptoKeyVersion_RSA_SIGN_PSS_3072_SHA256,
+		proto.CryptoKeyVersion_RSA_SIGN_PSS_4096_SHA256,
+		proto.CryptoKeyVersion_RSA_SIGN_PKCS1_2048_SHA256,
+		proto.CryptoKeyVersion_RSA_SIGN_PKCS1_3072_SHA256,
+		proto.CryptoKeyVersion_RSA_SIGN_PKCS1_4096_SHA256,
+		proto.CryptoKeyVersion_EC_SIGN_P256_SHA256,
+		proto.CryptoKeyVersion_EC_SIGN_SECP256K1_SHA256:
+		return 256, nil
+	case proto.CryptoKeyVersion_EC_SIGN_P384_SHA384:
+		return 384, nil
+	case proto.CryptoKeyVersion_RSA_SIGN_PSS_4096_SHA512,
+		proto.CryptoKeyVersion_RSA_SIGN_PKCS1_4096_SHA512:
+		return 512, nil
+	default:
+		return 0, ErrUnsupportedAlgorithm
+	}
 }
 
 // Hash returns the relavent hashing algorithm for the key's algorithm,
