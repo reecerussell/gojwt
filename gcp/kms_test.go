@@ -268,7 +268,7 @@ func TestVerify_WhereKeyAlgIsUnsupported_ReturnsErr(t *testing.T) {
 	assert.Equal(t, ErrUnsupportedAlgorithm, err)
 }
 
-func TestSize_GivenSHA256Alg_Returns256(t *testing.T) {
+func TestSize_GivenSHA256Alg_ReturnsCorrectSize(t *testing.T) {
 	algs := []proto.CryptoKeyVersion_CryptoKeyVersionAlgorithm{
 		proto.CryptoKeyVersion_RSA_SIGN_PSS_2048_SHA256,
 		proto.CryptoKeyVersion_RSA_SIGN_PSS_3072_SHA256,
@@ -290,11 +290,11 @@ func TestSize_GivenSHA256Alg_Returns256(t *testing.T) {
 		}
 		size, err := kms.Size()
 		assert.Nil(t, err)
-		assert.Equal(t, 256, size)
+		assert.Equal(t, 32, size)
 	}
 }
 
-func TestSize_GivenSHA384Alg_Returns384(t *testing.T) {
+func TestSize_GivenSHA384Alg_ReturnsCorrectSize(t *testing.T) {
 	algs := []proto.CryptoKeyVersion_CryptoKeyVersionAlgorithm{
 		proto.CryptoKeyVersion_EC_SIGN_P384_SHA384,
 	}
@@ -309,11 +309,11 @@ func TestSize_GivenSHA384Alg_Returns384(t *testing.T) {
 		}
 		size, err := kms.Size()
 		assert.Nil(t, err)
-		assert.Equal(t, 384, size)
+		assert.Equal(t, 48, size)
 	}
 }
 
-func TestSize_GivenSHA512Alg_Returns512(t *testing.T) {
+func TestSize_GivenSHA512Alg_ReturnsCorrectSize(t *testing.T) {
 	algs := []proto.CryptoKeyVersion_CryptoKeyVersionAlgorithm{
 		proto.CryptoKeyVersion_RSA_SIGN_PKCS1_4096_SHA512,
 		proto.CryptoKeyVersion_RSA_SIGN_PSS_4096_SHA512,
@@ -329,7 +329,7 @@ func TestSize_GivenSHA512Alg_Returns512(t *testing.T) {
 		}
 		size, err := kms.Size()
 		assert.Nil(t, err)
-		assert.Equal(t, 512, size)
+		assert.Equal(t, 64, size)
 	}
 }
 

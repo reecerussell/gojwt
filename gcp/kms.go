@@ -242,12 +242,12 @@ func (kms *KMS) Size() (int, error) {
 		proto.CryptoKeyVersion_RSA_SIGN_PKCS1_4096_SHA256,
 		proto.CryptoKeyVersion_EC_SIGN_P256_SHA256,
 		proto.CryptoKeyVersion_EC_SIGN_SECP256K1_SHA256:
-		return 256, nil
+		return crypto.SHA256.Size(), nil
 	case proto.CryptoKeyVersion_EC_SIGN_P384_SHA384:
-		return 384, nil
+		return crypto.SHA384.Size(), nil
 	case proto.CryptoKeyVersion_RSA_SIGN_PSS_4096_SHA512,
 		proto.CryptoKeyVersion_RSA_SIGN_PKCS1_4096_SHA512:
-		return 512, nil
+		return crypto.SHA512.Size(), nil
 	default:
 		return 0, ErrUnsupportedAlgorithm
 	}
