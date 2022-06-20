@@ -267,3 +267,82 @@ func TestVerify_WhereKeyAlgIsUnsupported_ReturnsErr(t *testing.T) {
 	assert.False(t, ok)
 	assert.Equal(t, ErrUnsupportedAlgorithm, err)
 }
+
+func TestSize_GivenSHA256Alg_Returns256(t *testing.T) {
+	algs := []proto.CryptoKeyVersion_CryptoKeyVersionAlgorithm{
+		proto.CryptoKeyVersion_RSA_SIGN_PSS_2048_SHA256,
+		proto.CryptoKeyVersion_RSA_SIGN_PSS_3072_SHA256,
+		proto.CryptoKeyVersion_RSA_SIGN_PSS_4096_SHA256,
+		proto.CryptoKeyVersion_RSA_SIGN_PKCS1_2048_SHA256,
+		proto.CryptoKeyVersion_RSA_SIGN_PKCS1_3072_SHA256,
+		proto.CryptoKeyVersion_RSA_SIGN_PKCS1_4096_SHA256,
+		proto.CryptoKeyVersion_EC_SIGN_P256_SHA256,
+		proto.CryptoKeyVersion_EC_SIGN_SECP256K1_SHA256,
+	}
+
+	for _, alg := range algs {
+		kms := KMS{
+			key: &proto.CryptoKey{
+				VersionTemplate: &proto.CryptoKeyVersionTemplate{
+					Algorithm: alg,
+				},
+			},
+		}
+		size, err := kms.Size()
+		assert.Nil(t, err)
+		assert.Equal(t, 256, size)
+	}
+}
+
+func TestSize_GivenSHA384Alg_Returns384(t *testing.T) {
+	algs := []proto.CryptoKeyVersion_CryptoKeyVersionAlgorithm{
+		proto.CryptoKeyVersion_EC_SIGN_P384_SHA384,
+	}
+
+	for _, alg := range algs {
+		kms := KMS{
+			key: &proto.CryptoKey{
+				VersionTemplate: &proto.CryptoKeyVersionTemplate{
+					Algorithm: alg,
+				},
+			},
+		}
+		size, err := kms.Size()
+		assert.Nil(t, err)
+		assert.Equal(t, 384, size)
+	}
+}
+
+func TestSize_GivenSHA512Alg_Returns512(t *testing.T) {
+	algs := []proto.CryptoKeyVersion_CryptoKeyVersionAlgorithm{
+		proto.CryptoKeyVersion_RSA_SIGN_PKCS1_4096_SHA512,
+		proto.CryptoKeyVersion_RSA_SIGN_PSS_4096_SHA512,
+	}
+
+	for _, alg := range algs {
+		kms := KMS{
+			key: &proto.CryptoKey{
+				VersionTemplate: &proto.CryptoKeyVersionTemplate{
+					Algorithm: alg,
+				},
+			},
+		}
+		size, err := kms.Size()
+		assert.Nil(t, err)
+		assert.Equal(t, 512, size)
+	}
+}
+
+func TestSize_GivenUnsupportedAlg_ReturnError(t *testing.T) {
+	kms := KMS{
+		key: &proto.CryptoKey{
+			VersionTemplate: &proto.CryptoKeyVersionTemplate{
+				// Unsupported algorithm.
+				Algorithm: proto.CryptoKeyVersion_RSA_DECRYPT_OAEP_2048_SHA1,
+			},
+		},
+	}
+	size, err := kms.Size()
+	assert.Equal(t, ErrUnsupportedAlgorithm, err)
+	assert.Equal(t, 0, size)
+}
